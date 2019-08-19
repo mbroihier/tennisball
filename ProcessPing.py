@@ -21,7 +21,7 @@ class ProcessPing(object):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pin, GPIO.IN)
 
-    def pulseReturn(self):
+    def pulseReturn(self, channel):
         '''
         Press the switch closed for duration seconds
         '''
