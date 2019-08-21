@@ -5,34 +5,28 @@ Created on Aug 19, 2019
 '''
 import time
 import RPi.GPIO as GPIO
-import SendPing
-import ProcessPing
+import Ping
 
 class TennisBall(object):
     '''
     Tennis Ball class
     '''
     def __init__(self):
-        self.sendPing = SendPing.SendPing()
-        self.processPing = ProcessPing.ProcessPing()
+        self.ping = Ping.Ping()
 
     def run_tennisball(self):
         '''
         run_tennisball - send pings and reports time between ping detections
         '''
-        print("Starting receiver")
-        self.processPing.start()
-        print("Starting sender")
-        self.sendPing.start()
+        print("Starting IO")
+        self.ping.start()
         while True:
             try:
-                print("Delta: ", self.processPing.getDelta())
+                print("Delta: ", self.ping.pulse())
                 time.sleep(1)
-                self.sendPing.pulse()
             except KeyboardInterrupt:
                 print("Terminating via keyboard stop")
-                self.sendPing.stop()
-                self.processPing.stop()
+                self.ping.stop()
                 GPIO.cleanup()
                 break
             except Exception as err:
