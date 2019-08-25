@@ -120,7 +120,7 @@ int tennisball::waitForPulse(int state, int pin, int duration) {
     }
   }
   if (deltaTime > duration) { // timeout or error
-    printf("Timeout/Error -- no pulse \n");
+    //printf("Timeout/Error -- no pulse \n");
     deltaTime = 0;
   } else {
     startTime.tv_nsec = lastTime.tv_nsec;
@@ -135,7 +135,7 @@ int tennisball::waitForPulse(int state, int pin, int duration) {
       }
     }
     if (deltaTime > duration) {
-      printf("Timeout/Error -- pulse too long\n");
+      //printf("Timeout/Error -- pulse too long\n");
       deltaTime = 0;
     }
   }
@@ -146,6 +146,11 @@ int main(int argc, char *argv[]) {
 
   tennisball tennisballInstance;
 
+  int accumulator = 0;
+  int samples = 0;
+  int average = 0;
+  int sampleArray[1000];
+  
   int deltaTime = 0;
   
   if (argc != 1) {
@@ -155,20 +160,58 @@ int main(int argc, char *argv[]) {
 
   printf("Setting up PI\n");
   wiringPiSetup();
-  printf("Setting up pin 1\n", deltaTime);
-  pinMode(0, OUTPUT);
+  pinMode(28, OUTPUT);
+  pinMode(29, OUTPUT);
   pinMode(1, INPUT);
   digitalWrite(0, 1); // set input to low
   tennisballInstance.nsecDelay(50000000);
   printf("Initialization done.\n");
   while (true) {
-    digitalWrite(0, 0); // begin pulse, should be high at input
+    digitalWrite(29, 0); // begin pulse, should be high at input
     tennisballInstance.nsecDelay(5000);
-    digitalWrite(0, 1); // end of pulse
+    digitalWrite(29, 1); // end of pulse
     tennisballInstance.nsecDelay(725000);
     deltaTime = tennisballInstance.waitForPulse(1, 1, 25000000);
-    printf("Delta time: %10d\n", deltaTime);
-    sleep(1);
+    //printf("Delta time: %10d\n", deltaTime);
+    if (average == 0) {
+      digitalWrite(28, 0);
+      if (deltaTime) {
+        accumulator += deltaTime;
+	sampleArray[samples] = deltaTime;
+        samples++;
+        if (samples >= 100) {
+	  average = accumulator / samples;
+	  for (int i = 0; i < samples; i++) {
+	    if (abs(sampleArray[i] - average) > 100000) {
+	      printf("Bad samples\n");
+	      sleep(5); // rest a bit
+	      accumulator = 0xe0000000;
+	      break;
+	    }
+	  }
+	  if (accumulator & 0xe0000000) { // overflow no "target"
+	    average = 0;
+	    accumulator = 0;
+	    samples = 0;
+	  } else {
+	    average += 5000; // bias by a bit (5 microseconds)
+	  }
+	  for (int i = 0; i < samples; i++) {
+	    printf("%d, %d\n", i, sampleArray[i]);
+	  }
+	  printf("Average: %d\n", average);
+        }
+      }
+    } else {
+      if (deltaTime) {
+        if (average < deltaTime) {
+	  digitalWrite(28, 0); // can be closer
+        } else {
+	  digitalWrite(28, 1); // close enough
+        }
+      }
+    }
+    tennisballInstance.nsecDelay(200000); // delay 200 u seconds
   }
 
   return 0;
