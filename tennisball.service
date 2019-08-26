@@ -1,0 +1,14 @@
+[Unit]
+Description=Tennisball service
+After=multi-user.target
+
+[Service]
+User=pi
+Group=pi
+ExecStart=/home/pi/tennisball/tennisball
+Restart=always
+RestartSec=10
+
+[Install]
+Alias=tennisball.service
+WantedBy=default.target
