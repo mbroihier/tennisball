@@ -25,7 +25,8 @@ class tennisball {
   int waitForPulse(int state, int pin, int duration);
   
   ~tennisball(void){
-     pinMode(0, INPUT);
+     pinMode(28, INPUT);
+     pinMode(29, INPUT);
      printf("Terminating\n");
    };
     

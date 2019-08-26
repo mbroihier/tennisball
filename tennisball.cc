@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -30,7 +31,12 @@
 static const char USAGE_STR[] = "\n"
   "Usage: %s \n";
 
+int done = 0;
 
+void terminate(int level) {
+  extern int done;
+  done = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 /*
@@ -46,6 +52,10 @@ void tennisball::nsecDelay(int duration) {
   struct timespec startTime;
   bool done = false;
   int deltaTime;
+  if (duration > 1000000000) {
+    printf("Illegal duration: %d\n", duration);
+    return;
+  }
   clock_gettime(CLOCK_MONOTONIC, &startTime);
   while (!done) {
     clock_gettime(CLOCK_MONOTONIC, &lastTime);
@@ -71,6 +81,10 @@ void tennisball::nsecDelay(int duration) {
 int tennisball::waitFor(int state, int pin, int duration) {
   struct timespec lastTime;
   struct timespec startTime;
+  if (duration > 1000000000) {
+    printf("Illegal duration: %d\n", duration);
+    return 0;
+  }
   int deltaTime = duration + 1;
   clock_gettime(CLOCK_MONOTONIC, &startTime);
   while (digitalRead(pin) != state) {
@@ -107,6 +121,10 @@ int tennisball::waitFor(int state, int pin, int duration) {
 int tennisball::waitForPulse(int state, int pin, int duration) {
   struct timespec lastTime;
   struct timespec startTime;
+  if (duration > 1000000000) {
+    printf("Illegal duration: %d\n", duration);
+    return 0;
+  }
   int deltaTime = duration + 1;
   clock_gettime(CLOCK_MONOTONIC, &startTime);
   while (digitalRead(pin) != state) {
@@ -144,6 +162,7 @@ int tennisball::waitForPulse(int state, int pin, int duration) {
 
 int main(int argc, char *argv[]) {
 
+  extern int done;
   tennisball tennisballInstance;
 
   int accumulator = 0;
@@ -164,9 +183,10 @@ int main(int argc, char *argv[]) {
   pinMode(29, OUTPUT);
   pinMode(1, INPUT);
   digitalWrite(0, 1); // set input to low
+  signal(SIGINT, &terminate);
   tennisballInstance.nsecDelay(50000000);
   printf("Initialization done.\n");
-  while (true) {
+  while (!done) {
     digitalWrite(29, 0); // begin pulse, should be high at input
     tennisballInstance.nsecDelay(5000);
     digitalWrite(29, 1); // end of pulse
