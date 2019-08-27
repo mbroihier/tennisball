@@ -6,7 +6,7 @@ Created on Aug 21, 2019
 import time
 import RPi.GPIO as GPIO
 
-class Ping(object):
+class Ping():
     '''
     Class for making a Send Ping object
     '''
@@ -16,9 +16,10 @@ class Ping(object):
         Constructor
         '''
         self.state = "open"
-        self.duration = 10e-6 
-        self.pinOut = 17
+        self.duration = 10e-6
+        self.pinOut = 21
         self.pinIn = 18
+        self.average = 0.0
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pinOut, GPIO.OUT)
         GPIO.setup(self.pinIn, GPIO.IN)
@@ -27,13 +28,15 @@ class Ping(object):
 
     def open(self):
         '''
-        Open the switch (off/false) - this will set the voltage at the collector of the transistor to five volts
+        Open the switch (off/false) - this will set the voltage at the collector of the transistor
+        to 5 volts
         '''
         GPIO.output(self.pinOut, False)
 
     def close(self):
         '''
-        Close the switch (on/true) - this will set the voltage at the collector of the transistor to zero
+        Close the switch (on/true) - this will set the voltage at the collector of the transistor to
+        zero
         '''
         GPIO.output(self.pinOut, True)
 
@@ -59,6 +62,18 @@ class Ping(object):
         '''
         Do startup stuff
         '''
+        count = 0
+        accumulator = 0.0
+        while count < 100:
+            sample = self.pulse()
+            accumulator += sample
+            count += 1
+            if abs(sample*count - accumulator) > 0.000100 * count:
+                print("Reseting at count:", count, " sample:", sample, " accumulator:", accumulator)
+                count = 0
+                accumulator = 0.0
+        self.average = accumulator/count
+        return self.average
 
     def stop(self):
         '''
@@ -69,4 +84,3 @@ class Ping(object):
         Return delta time
         '''
         return self.delta
-

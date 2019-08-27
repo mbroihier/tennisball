@@ -3,31 +3,36 @@ Created on Aug 19, 2019
 
 @author: broihier
 '''
-import time
-import RPi.GPIO as GPIO
+import LED
 import Ping
 
-class TennisBall(object):
+class TennisBall():
     '''
     Tennis Ball class
     '''
     def __init__(self):
         self.ping = Ping.Ping()
+        self.led = LED.LED()
 
     def run_tennisball(self):
         '''
         run_tennisball - send pings and reports time between ping detections
         '''
         print("Starting IO")
-        self.ping.start()
+        average = self.ping.start()
+
         while True:
             try:
-                print("Delta: ", self.ping.pulse())
-                time.sleep(1)
+                currentDistance = self.ping.pulse()
+                print("Delta: ", currentDistance)
+                if currentDistance < average:
+                    self.led.on()
+                else:
+                    self.led.off()
             except KeyboardInterrupt:
                 print("Terminating via keyboard stop")
                 self.ping.stop()
-                GPIO.cleanup()
+                self.led.stop()
                 break
             except Exception as err:
                 print(err)
