@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <semaphore.h>
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
@@ -168,15 +169,19 @@ int main(int argc, char *argv[]) {
   int accumulator = 0;
   int samples = 0;
   int average = 0;
-  int sampleArray[1000];
   
   int deltaTime = 0;
+
+  sem_t releaseCPU;
+  struct timespec ts;
   
   if (argc != 1) {
     fprintf(stderr, USAGE_STR, argv[0]);
     return -2;
   }
 
+  sem_init(&releaseCPU, 0, 0);
+  clock_gettime(CLOCK_REALTIME, &ts);
   printf("Setting up PI\n");
   wiringPiSetup();
   pinMode(28, OUTPUT);
@@ -197,27 +202,21 @@ int main(int argc, char *argv[]) {
       digitalWrite(28, 0);
       if (deltaTime) {
         accumulator += deltaTime;
-	sampleArray[samples] = deltaTime;
         samples++;
+	if (abs(accumulator - samples*deltaTime) > 100000*samples) {
+	  printf("Resetting at count: %d, sample: %d, accumulator: %d\n", samples, accumulator, deltaTime);
+	  samples = 0;
+	  accumulator = 0;
+	}
         if (samples >= 100) {
 	  average = accumulator / samples;
-	  for (int i = 0; i < samples; i++) {
-	    if (abs(sampleArray[i] - average) > 100000) {
-	      printf("Bad samples\n");
-	      sleep(5); // rest a bit
-	      accumulator = 0xe0000000;
-	      break;
-	    }
-	  }
 	  if (accumulator & 0xe0000000) { // overflow no "target"
+	    printf("accumulator overflow\n");
 	    average = 0;
 	    accumulator = 0;
 	    samples = 0;
 	  } else {
 	    average += 5000; // bias by a bit (5 microseconds)
-	  }
-	  for (int i = 0; i < samples; i++) {
-	    printf("%d, %d\n", i, sampleArray[i]);
 	  }
 	  printf("Average: %d\n", average);
         }
@@ -231,7 +230,18 @@ int main(int argc, char *argv[]) {
         }
       }
     }
-    tennisballInstance.nsecDelay(200000); // delay 200 u seconds
+    //tennisballInstance.nsecDelay(200000); // delay 200 u seconds
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_nsec += 250000000;
+    if (ts.tv_nsec >= 1000000000) {
+      ts.tv_sec++;
+      ts.tv_nsec -= 1000000000;
+    }
+    if (sem_timedwait(&releaseCPU, &ts) < 0) {
+      if (errno != ETIMEDOUT) perror("sem_timedwait");
+    } else {
+      printf("Should never get here\n");
+    }
   }
 
   return 0;
