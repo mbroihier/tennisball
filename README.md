@@ -45,3 +45,5 @@ sudo shutdown -r now
 This will start the tennisball application.  When it starts, it will start measuring the distance to the closest object to the PING sensor.  When it detects something at a stable distnace, it will begin lighting an LED indicating that an object is at the "target" distance.  If objects are too far away, the LED will be off.  This will run until the PI is powered off.
 
 There are two versions: a C++ version and a python3 version.  The service runs the C++ version.  They python code is nice for quickly checking out ideas.
+
+[Wiring] (https://github.com/mbroihier/tennisball/tennisball.pdf)
