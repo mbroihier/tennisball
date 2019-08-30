@@ -46,4 +46,4 @@ This will start the tennisball application.  When it starts, it will start measu
 
 There are two versions: a C++ version and a python3 version.  The service runs the C++ version.  They python code is nice for quickly checking out ideas.
 
-[Wiring](../blob/master/tennisball.pdf)
+[Wiring](tennisball.pdf)
