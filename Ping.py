@@ -23,32 +23,30 @@ class Ping():
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pinOut, GPIO.OUT)
         GPIO.setup(self.pinIn, GPIO.IN)
-        self.close()
+        self.off()
         self.delta = 0.0
 
-    def open(self):
+    def on(self):
         '''
-        Open the switch (off/false) - this will set the voltage at the collector of the transistor
-        to 5 volts
+        Set the trigger to the on state
         '''
         GPIO.output(self.pinOut, False)
 
-    def close(self):
+    def off(self):
         '''
-        Close the switch (on/true) - this will set the voltage at the collector of the transistor to
-        zero
+        Set the trigger to the off state
         '''
         GPIO.output(self.pinOut, True)
 
     def pulse(self):
         '''
-        Press the switch closed for duration seconds
+        Toggle the trigger and measure the response
         '''
         start = time.time()
-        self.open()
+        self.on()
         while time.time() - start < self.duration:
             pass
-        self.close()
+        self.off()
         entryTime = time.time()
         startTime = entryTime
         self.delta = 0.0
