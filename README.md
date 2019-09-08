@@ -14,7 +14,7 @@ Parts:
   - small prototype circuit board where I mount and interconnect the PING, LED, resisters, and transtor
 
 Assembly - Software:
-  1)  Install Stretch Lite from www.raspberrypi.org/downloads/raspbian
+  1)  Install Buster Lite from www.raspberrypi.org/downloads/raspbian
       I do headless installs of my PI 0's which, on the publication date
       means that I copy the raspbian image to the SD card plugged into my
       Mac, mount the card and touch the ssh file on the boot partition and
@@ -23,7 +23,7 @@ Assembly - Software:
   3)  Change the password.
   4)  Change the node name to tennisball.
   5)  sudo apt-get update
-  6)  sudo apt-get install python3-pip build-essential cmake git
+  6)  sudo apt-get install python3-pip build-essential cmake git wiringpi --fix-missing 
   7)  sudo pip3 install RPi.GPIO
   8)  git clone https://github.com/mbroihier/tennisball.git
   9)  change to tennisball directory and make the application
