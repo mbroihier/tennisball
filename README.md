@@ -5,7 +5,7 @@ This repository contains C++ and python programs that control a PING ultrasonic 
 Parts:
   - Raspberry PI 0 
   - PING 28015
-  - 2 1000K ohm resistors
+  - 2 1K ohm resistors
   - 1 LED
   - 1 2N2222 transistor
   - 16 G SD card - can be smaller
